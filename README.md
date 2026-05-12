@@ -2,6 +2,56 @@
 
 ## Como rodar
 
+O projeto deve ser rodado dentro de uma VM do VirtualBox. Com ele instalado, faça download do aquivo abaixo e importe ele no VirtualBox (File > Import Appliance)
+
+-  [Linux Mint VirtualBox image](https://drive.google.com/file/d/1Fin0aV261Yuldtv47qqZcMvpbe69S-Lh/view?usp=drive_link)
+
+Após importar e iniciar a VM, clone esse repo.
+
+O projeto é dividido em três partes. Entre na pasta da parte desejada (ex: `cd p1`) e rode:
+
+```bash
+vagrant up
+```
+
+### Comandos úteis do Vagrant
+
+Sobe apenas uma VM especifica:
+
+```bash
+vagrant up almarcos
+```
+
+Sobe todas as VMs em paralelo:
+
+```bash
+vagrant up --parallel
+```
+
+Abrir um shell na VM:
+
+```bash
+vagrant ssh eddos-sa
+```
+
+Parar todas as VMs:
+
+```bash
+vagrant halt
+```
+
+Apagar todas as VMs sem perguntar e em paralelo:
+
+```bash
+vagrant destroy -f --parallel
+```
+
+Listar todas as VMs, removendo entradas inválidas:
+
+```bash
+vagrant global-status --prune
+```
+
 ## Links úteis
 
 - [Introdução ao Vagrant](https://developer.hashicorp.com/vagrant/tutorials/get-started)
