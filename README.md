@@ -6,6 +6,11 @@ O projeto deve ser rodado dentro de uma VM do VirtualBox. Com ele instalado, fa�
 
 -  [Linux Mint VirtualBox image](https://drive.google.com/file/d/1Fin0aV261Yuldtv47qqZcMvpbe69S-Lh/view?usp=drive_link)
 
+Dicas:
+
+- Ctrl direito + f para full screen
+- copy/paste entre o a VM e o host deve funcionar normalmente
+
 Após importar e iniciar a VM, clone esse repo.
 
 O projeto é dividido em três partes. Entre na pasta da parte desejada (ex: `cd p1`) e rode:
