@@ -8,7 +8,7 @@ O projeto deve ser rodado dentro de uma VM do VirtualBox. Com ele instalado, fa√
 
 Dicas:
 
-- Ctrl direito + f para full screen
+- Ctrl direito + f para habilitar/desabilitar full screen
 - copy/paste entre o a VM e o host deve funcionar normalmente
 
 Ap√≥s importar e iniciar a VM, clone esse repo.
