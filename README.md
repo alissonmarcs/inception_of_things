@@ -2,7 +2,7 @@
 
 ## Como rodar
 
-O projeto deve ser rodado dentro de uma VM do VirtualBox. Com ele instalado, faça download do aquivo abaixo e importe ele no VirtualBox (Menu File > Import Appliance). A VM foi configurada com 16GB Ram e 4 CPUS, mas vc pode mudar essas configs.
+j projeto deve ser rodado dentro de uma VM do VirtualBox. Com ele instalado, faça download do aquivo abaixo e importe ele no VirtualBox (Menu File > Import Appliance). A VM foi configurada com 16GB Ram e 4 CPUS, mas vc pode mudar essas configs, e recomendo que o disco virtual dela tenha no mínimo uns 70GB.
 
 -  [Linux Mint VirtualBox image](https://drive.google.com/file/d/1Fin0aV261Yuldtv47qqZcMvpbe69S-Lh/view?usp=drive_link)
 
