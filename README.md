@@ -57,6 +57,19 @@ Listar todas as VMs, removendo entradas inválidas:
 vagrant global-status --prune
 ```
 
+Remover box:
+
+```bash
+vagrant box remove box_name
+```
+
+Listar boxes:
+
+```bash
+vagrant box list
+```
+
+
 ## Links úteis
 
 - [Introdução ao Vagrant](https://developer.hashicorp.com/vagrant/tutorials/get-started)
