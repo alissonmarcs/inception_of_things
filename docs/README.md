@@ -10,7 +10,7 @@
 Cluster é uma coleção de nós. O propósito do k8s é gerenciar clusters.
 
 Nó é uma máquina, pode ser VM ou máquina real. É comum ter um nó
-que exclusivamente gerência o cluster, e outros nós que rodam as aplicações em containers.
+que exclusivamente gerencia o cluster, e outros nós que rodam as aplicações em containers.
 
 O nó que gerencia o cluster é chamado de control plane.
 
@@ -39,7 +39,7 @@ E vários outros.
 
 ### O comando `kubectl`
 
-Esse comando é cliente do **kubeapi-server**, e é com ele que um cluster é gerenciado. 
+Esse comando é cliente do **kube-apiserver**, e é com ele que um cluster é gerenciado. 
 
 No control plane, para listar todos os nós:
 
@@ -49,7 +49,7 @@ kubectl get nodes -o wide
 
 #### Como gerenciar o cluster pelo worker node ?
 
-Com o `kubectl` sendo cliente do **kubeapi-server**, significa que é possível gerenciar um cluster remoto.
+Com o `kubectl` sendo cliente do **kube-apiserver**, significa que é possível gerenciar um cluster remoto.
 
 Exemplo:
 
