@@ -96,3 +96,9 @@ Agora sim:
 ```bash
 kubectl get nodes -o wide --kubeconfig ./k3s.yaml
 ```
+
+## Links úteis
+
+- [O que é um cluster](https://kubernetes.io/docs/tutorials/kubernetes-basics/create-cluster/cluster-intro/)
+
+- [Arquitera do cluster](https://kubernetes.io/docs/concepts/architecture/)
