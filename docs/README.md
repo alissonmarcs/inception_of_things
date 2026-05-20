@@ -69,7 +69,7 @@ Ao pedir senha, use vagrant.
 
 E no worker node, é necessário mudar a linha `server: https://127.0.0.1:6443` para `server: https://192.168.56.110:6443` no `k3s.yaml`:
 
-```
+```yaml
 # /home/vagrant/k3s.yaml
 apiVersion: v1
 clusters:
