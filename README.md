@@ -1,5 +1,10 @@
 ## Sobre
 
+O propósito desse projeto é ser uma introdução as seguintes ferramentas:
+
+- Vagrant, simplifica o gerenciamento de VMs de diferentes providers (VirtualBox, VMWare, etc) através do `Vagrantfile`
+- Kubernetes, gerencia um cluster de VMs
+
 ## Como rodar
 
 O projeto deve ser rodado dentro de uma VM do VirtualBox. Com ele instalado, faça download do aquivo abaixo e importe ele no VirtualBox (Menu File > Import Appliance). A VM foi configurada com 16GB Ram e 4 CPUS, mas vc pode mudar essas configs, e recomendo que o disco virtual dela tenha no mínimo uns 70GB.
