@@ -101,4 +101,4 @@ kubectl get nodes -o wide --kubeconfig ./k3s.yaml
 
 - [O que é um cluster](https://kubernetes.io/docs/tutorials/kubernetes-basics/create-cluster/cluster-intro/)
 
-- [Arquitera do cluster](https://kubernetes.io/docs/concepts/architecture/)
+- [Arquitetura do cluster](https://kubernetes.io/docs/concepts/architecture/)
