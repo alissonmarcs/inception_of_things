@@ -1,0 +1,51 @@
+====================================================================
+INCEPTION OF THINGS - PARTE 2: RESUMO DO ARQUITETURA E STATUS ATUAL
+====================================================================
+
+1. ENTENDIMENTO DA PARTE 2 vs PARTE 1
+-------------------------------------
+* Diferente da Parte 1 (que precisava de 2 VMs: Server + Worker), a
+  Parte 2 exige APENAS 1 VM em modo standalone Server (Controlador).
+* IP fixo obrigatório da VM: 192.168.56.110.
+* Objetivo Principal: Validar roteamento de tráfego HTTP externo usando
+  regras de Ingress (Host-based Routing) sem expor portas locais (NodePort).
+
+2. ORGANIZAÇÃO DO REPOSITÓRIO LOCAL (HOST)
+------------------------------------------
+Desenvolvemos os arquivos na nossa máquina física dentro da pasta do projeto.
+Vagrant mapeia e compartilha isso automaticamente dentro da VM em '/vagrant'.
+
+Estrutura de arquivos atual:
+p2/
+├── Vagrantfile               # Configura apenas a VM 'vde-freiS' + K3s Server
+└── confs/
+    └── app1-deployment.yaml  # Manifesto do App 1 (Deployment + Service)
+
+3. O QUE É O APP 1?
+-------------------
+* Não criamos uma imagem do zero nem subimos para o Docker Hub (não precisa).
+* Usamos a imagem pública oficial 'traefik/whoami'. Ela simula uma aplicação
+  web leve que responde texto puro via HTTP identificando qual Pod respondeu.
+* Regra do PDF para App 1: Apenas 1 réplica (1 Pod rodando).
+* O Service dele foi configurado como 'ClusterIP' (tipo de rede que só é
+  visível internamente dentro do cluster Kubernetes).
+
+4. COMO EXECUTAMOS E CONECTAMOS
+-------------------------------
+* O comando 'kubectl' NÃO roda na máquina física (Host). Ele vive dentro da VM.
+* Fluxo de trabalho executado:
+  1. No Host: subimos a infraestrutura -> 'vagrant up'
+  2. Acessamos o terminal interno da VM -> 'vagrant ssh vde-freiS'
+  3. Dentro da VM: aplicamos o manifesto -> 'kubectl apply -f /vagrant/confs/app1-deployment.yaml'
+  4. Validamos o status interno do pod -> 'kubectl get pods,svc'
+
+5. PRÓXIMOS PASSOS PARA VER NO BROWSER (Ainda não visível externamente)
+----------------------------------------------------------------------
+* Passo A: Criar e aplicar os manifestos do App 2 (3 réplicas) e App 3 (1 réplica).
+* Passo B: Criar o arquivo 'ingress.yaml' para mapear os cabeçalhos:
+  - 'app1.com' -> Redireciona para o app1-service.
+  - 'app2.com' -> Redireciona para o app2-service.
+  - Qualquer outro tráfego (ou IP direto) -> Redireciona para o app3 (Fallback padrão).
+* Passo C: Alterar o arquivo '/etc/hosts' da máquina física (Host) para apontar
+  '192.168.56.110 app1.com' e '192.168.56.110 app2.com'.
+====================================================================
