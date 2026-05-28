@@ -1,51 +1,122 @@
-====================================================================
-INCEPTION OF THINGS - PARTE 2: RESUMO DO ARQUITETURA E STATUS ATUAL
-====================================================================
+======================================================================
+              INCEPTION OF THINGS - PARTE 2: INFRAESTRUTURA
+======================================================================
 
-1. ENTENDIMENTO DA PARTE 2 vs PARTE 1
--------------------------------------
-* Diferente da Parte 1 (que precisava de 2 VMs: Server + Worker), a
-  Parte 2 exige APENAS 1 VM em modo standalone Server (Controlador).
-* IP fixo obrigatório da VM: 192.168.56.110.
-* Objetivo Principal: Validar roteamento de tráfego HTTP externo usando
-  regras de Ingress (Host-based Routing) sem expor portas locais (NodePort).
-
-2. ORGANIZAÇÃO DO REPOSITÓRIO LOCAL (HOST)
-------------------------------------------
-Desenvolvemos os arquivos na nossa máquina física dentro da pasta do projeto.
-Vagrant mapeia e compartilha isso automaticamente dentro da VM em '/vagrant'.
-
-Estrutura de arquivos atual:
-p2/
-├── Vagrantfile               # Configura apenas a VM 'vde-freiS' + K3s Server
-└── confs/
-    └── app1-deployment.yaml  # Manifesto do App 1 (Deployment + Service)
-
-3. O QUE É O APP 1?
--------------------
-* Não criamos uma imagem do zero nem subimos para o Docker Hub (não precisa).
-* Usamos a imagem pública oficial 'traefik/whoami'. Ela simula uma aplicação
-  web leve que responde texto puro via HTTP identificando qual Pod respondeu.
-* Regra do PDF para App 1: Apenas 1 réplica (1 Pod rodando).
-* O Service dele foi configurado como 'ClusterIP' (tipo de rede que só é
-  visível internamente dentro do cluster Kubernetes).
-
-4. COMO EXECUTAMOS E CONECTAMOS
--------------------------------
-* O comando 'kubectl' NÃO roda na máquina física (Host). Ele vive dentro da VM.
-* Fluxo de trabalho executado:
-  1. No Host: subimos a infraestrutura -> 'vagrant up'
-  2. Acessamos o terminal interno da VM -> 'vagrant ssh vde-freiS'
-  3. Dentro da VM: aplicamos o manifesto -> 'kubectl apply -f /vagrant/confs/app1-deployment.yaml'
-  4. Validamos o status interno do pod -> 'kubectl get pods,svc'
-
-5. PRÓXIMOS PASSOS PARA VER NO BROWSER (Ainda não visível externamente)
+1. DIAGRAMA DA ARQUITETURA DA INFRAESTRUTURA (CAMADA 7)
 ----------------------------------------------------------------------
-* Passo A: Criar e aplicar os manifestos do App 2 (3 réplicas) e App 3 (1 réplica).
-* Passo B: Criar o arquivo 'ingress.yaml' para mapear os cabeçalhos:
-  - 'app1.com' -> Redireciona para o app1-service.
-  - 'app2.com' -> Redireciona para o app2-service.
-  - Qualquer outro tráfego (ou IP direto) -> Redireciona para o app3 (Fallback padrão).
-* Passo C: Alterar o arquivo '/etc/hosts' da máquina física (Host) para apontar
-  '192.168.56.110 app1.com' e '192.168.56.110 app2.com'.
-====================================================================
+O tráfego entra pela máquina Host, é interceptado pelo Ingress Controller
+(Traefik nativo do K3s) através de regras baseadas no cabeçalho HTTP "Host".
+Em seguida, o Ingress distribui as requisições para os respectivos Services,
+que gerenciam e balanceiam a carga entre as réplicas dos Pods.
+
++--------------------------------------------------------------------+
+|                       MÁQUINA FÍSICA (HOST)                        |
+|                                                                    |
+|   [ Navegador / curl ]                                             |
+|          |                                                         |
+|          v                                                         |
+|   IP: 192.168.56.110 (Interface de Rede Privada VirtualBox)        |
++--------------------------------------------------------------------+
+                               |
+                               v
++--------------------------------------------------------------------+
+|                  MÁQUINA VIRTUAL VAGRANT (K3s)                     |
+|                                                                    |
+|  +--------------------------------------------------------------+  |
+|  |                INGRESS CONTROLLER (Traefik)                  |  |
+|  |                                                              |  |
+|  |  Mapeia requisições baseado nas regras de regras de Host:    |  |
+|  |  - se Host == app1.com  ==> Direciona para app1-service      |  |
+|  |  - se Host == app2.com  ==> Direciona para app2-service      |  |
+|  |  - se Host == app3.com  ==> Direciona para app3-service      |  |
+|  +--------------------------------------------------------------+  |
+|                               |                                    |
+|         +---------------------+---------------------+              |
+|         |                     |                     |              |
+|         v                     v                     v              |
+|  +--------------+      +--------------+      +--------------+      |
+|  | app1-service |      | app2-service |      | app3-service |      |
+|  |  (Porta 80)  |      |  (Porta 80)  |      |  (Porta 80)  |      |
+|  +--------------+      +--------------+      +--------------+      |
+|         |                     |                     |              |
+|         |                     | (Round-Robin)       |              |
+|         |                     +---+---+             |              |
+|         v                         |   |             v              |
+|  +--------------+                 v   v      +--------------+      |
+|  |   POD APP 1  |      +----------+   +---+  |   POD APP 3  |      |
+|  | (1 Réplica)  |      |                  |  | (1 Réplica)  |      |
+|  |  [http-echo] |      v                  v  |  [http-echo] |      |
+|  | (Porta 5678) |  +--------------+ +-----+  | (Porta 5678) |      |
+|  +--------------+  |  POD 1 APP 2 | | POD |  +--------------+      |
+|                    | [nginx-hello]| | ... |                        |
+|                    |  (Porta 80)  | +-----+                        |
+|                    +--------------+                                |
+|                                                                    |
+|     Nota: Todos os Pods rodam isolados no namespace 'default'.      |
++--------------------------------------------------------------------+
+
+
+2. ARQUIVOS E MANIFESTOS MODIFICADOS
+----------------------------------------------------------------------
+
+A) NO HOST (Máquina Física):
+   - /etc/hosts (Linux/macOS)
+     Adicionada a linha de resolução estática para desviar o DNS local:
+     192.168.56.110 app1.com app2.com app3.com
+
+B) DIRETÓRIO DO PROJETO (Estrutura Local):
+   - Vagrantfile: Configura a VM base com Debian 12 (Bento) para total
+     compatibilidade de cgroups, provisiona o K3s Server e fixa o IP.
+   - confs/ingress.yaml: Define as regras de roteamento do Traefik.
+   - confs/app1.yaml, app2.yaml, app3.yaml: Manifesto dos objetos de
+     Deployment e Service de cada aplicação.
+
+
+3. GUIA PASSO A PASSO (FIRST TIME USER / GUIA DE EXECUÇÃO)
+----------------------------------------------------------------------
+
+Se for a sua primeira vez subindo este laboratório, siga rigorosamente
+os passos abaixo no terminal:
+
+PASSO 1: Preparar o arquivo de Hosts da máquina física
+Como administrador da sua máquina, adicione o mapeamento IP-Domínio:
+$ sudo nano /etc/hosts
+Adicione no final: 192.168.56.110 app1.com app2.com app3.com
+
+PASSO 2: Iniciar a Infraestrutura com Vagrant
+Na raiz da pasta do seu projeto (onde está o Vagrantfile), execute:
+$ vagrant up
+
+*O Vagrant baixará o Debian 12, configurará a rede privada e rodará
+o script automatizado para instalar o Kubernetes K3s.*
+
+PASSO 3: Acessar a Máquina Virtual via SSH
+$ vagrant ssh vde-freiS
+
+PASSO 4: Aplicar as configurações do Kubernetes
+Uma vez dentro da VM (o prompt mudará para vagrant@vde-freiS), execute:
+$ kubectl apply -f /vagrant/confs/
+
+PASSO 5: Verificar a saúde dos Pods e do Cluster
+Acompanhe os Pods subindo e mudando de estado até ficarem 'Running':
+$ kubectl get pods -w
+
+*Pressione Ctrl + C para sair do modo de monitoramento contínuo.*
+
+
+4. COMANDOS DE VALIDAÇÃO (DE ALTO NÍVEL)
+----------------------------------------------------------------------
+Para provar que o Ingress está isolando as aplicações e que o Service
+do App 2 está fazendo Load Balancer, execute os seguintes comandos do
+terminal da sua MÁQUINA FÍSICA (fora do Vagrant):
+
+# Teste do App 1 (Retorna HTML Azul Claro)
+$ curl -H "Host: app1.com" http://192.168.56.110
+
+# Teste do App 2 (Execute 3 vezes seguidas para ver as Hashes mudando)
+$ curl -H "Host: app2.com" http://192.168.56.110
+
+# Teste do App 3 (Retorna HTML Bege)
+$ curl -H "Host: app3.com" http://192.168.56.110
+
+======================================================================
