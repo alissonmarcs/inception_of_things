@@ -1,0 +1,122 @@
+======================================================================
+              INCEPTION OF THINGS - PARTE 2: INFRAESTRUTURA
+======================================================================
+
+1. DIAGRAMA DA ARQUITETURA DA INFRAESTRUTURA (CAMADA 7)
+----------------------------------------------------------------------
+O tráfego entra pela máquina Host, é interceptado pelo Ingress Controller
+(Traefik nativo do K3s) através de regras baseadas no cabeçalho HTTP "Host".
+Em seguida, o Ingress distribui as requisições para os respectivos Services,
+que gerenciam e balanceiam a carga entre as réplicas dos Pods.
+
++--------------------------------------------------------------------+
+|                       MÁQUINA FÍSICA (HOST)                        |
+|                                                                    |
+|   [ Navegador / curl ]                                             |
+|          |                                                         |
+|          v                                                         |
+|   IP: 192.168.56.110 (Interface de Rede Privada VirtualBox)        |
++--------------------------------------------------------------------+
+                               |
+                               v
++--------------------------------------------------------------------+
+|                  MÁQUINA VIRTUAL VAGRANT (K3s)                     |
+|                                                                    |
+|  +--------------------------------------------------------------+  |
+|  |                INGRESS CONTROLLER (Traefik)                  |  |
+|  |                                                              |  |
+|  |  Mapeia requisições baseado nas regras de regras de Host:    |  |
+|  |  - se Host == app1.com  ==> Direciona para app1-service      |  |
+|  |  - se Host == app2.com  ==> Direciona para app2-service      |  |
+|  |  - se Host == app3.com  ==> Direciona para app3-service      |  |
+|  +--------------------------------------------------------------+  |
+|                               |                                    |
+|         +---------------------+---------------------+              |
+|         |                     |                     |              |
+|         v                     v                     v              |
+|  +--------------+      +--------------+      +--------------+      |
+|  | app1-service |      | app2-service |      | app3-service |      |
+|  |  (Porta 80)  |      |  (Porta 80)  |      |  (Porta 80)  |      |
+|  +--------------+      +--------------+      +--------------+      |
+|         |                     |                     |              |
+|         |                     | (Round-Robin)       |              |
+|         |                     +---+---+             |              |
+|         v                         |   |             v              |
+|  +--------------+                 v   v      +--------------+      |
+|  |   POD APP 1  |      +----------+   +---+  |   POD APP 3  |      |
+|  | (1 Réplica)  |      |                  |  | (1 Réplica)  |      |
+|  |  [http-echo] |      v                  v  |  [http-echo] |      |
+|  | (Porta 5678) |  +--------------+ +-----+  | (Porta 5678) |      |
+|  +--------------+  |  POD 1 APP 2 | | POD |  +--------------+      |
+|                    | [nginx-hello]| | ... |                        |
+|                    |  (Porta 80)  | +-----+                        |
+|                    +--------------+                                |
+|                                                                    |
+|     Nota: Todos os Pods rodam isolados no namespace 'default'.      |
++--------------------------------------------------------------------+
+
+
+2. ARQUIVOS E MANIFESTOS MODIFICADOS
+----------------------------------------------------------------------
+
+A) NO HOST (Máquina Física):
+   - /etc/hosts (Linux/macOS)
+     Adicionada a linha de resolução estática para desviar o DNS local:
+     192.168.56.110 app1.com app2.com app3.com
+
+B) DIRETÓRIO DO PROJETO (Estrutura Local):
+   - Vagrantfile: Configura a VM base com Debian 12 (Bento) para total
+     compatibilidade de cgroups, provisiona o K3s Server e fixa o IP.
+   - confs/ingress.yaml: Define as regras de roteamento do Traefik.
+   - confs/app1.yaml, app2.yaml, app3.yaml: Manifesto dos objetos de
+     Deployment e Service de cada aplicação.
+
+
+3. GUIA PASSO A PASSO (FIRST TIME USER / GUIA DE EXECUÇÃO)
+----------------------------------------------------------------------
+
+Se for a sua primeira vez subindo este laboratório, siga rigorosamente
+os passos abaixo no terminal:
+
+PASSO 1: Preparar o arquivo de Hosts da máquina física
+Como administrador da sua máquina, adicione o mapeamento IP-Domínio:
+$ sudo nano /etc/hosts
+Adicione no final: 192.168.56.110 app1.com app2.com app3.com
+
+PASSO 2: Iniciar a Infraestrutura com Vagrant
+Na raiz da pasta do seu projeto (onde está o Vagrantfile), execute:
+$ vagrant up
+
+*O Vagrant baixará o Debian 12, configurará a rede privada e rodará
+o script automatizado para instalar o Kubernetes K3s.*
+
+PASSO 3: Acessar a Máquina Virtual via SSH
+$ vagrant ssh vde-freiS
+
+PASSO 4: Aplicar as configurações do Kubernetes
+Uma vez dentro da VM (o prompt mudará para vagrant@vde-freiS), execute:
+$ kubectl apply -f /vagrant/confs/
+
+PASSO 5: Verificar a saúde dos Pods e do Cluster
+Acompanhe os Pods subindo e mudando de estado até ficarem 'Running':
+$ kubectl get pods -w
+
+*Pressione Ctrl + C para sair do modo de monitoramento contínuo.*
+
+
+4. COMANDOS DE VALIDAÇÃO (DE ALTO NÍVEL)
+----------------------------------------------------------------------
+Para provar que o Ingress está isolando as aplicações e que o Service
+do App 2 está fazendo Load Balancer, execute os seguintes comandos do
+terminal da sua MÁQUINA FÍSICA (fora do Vagrant):
+
+# Teste do App 1 (Retorna HTML Azul Claro)
+$ curl -H "Host: app1.com" http://192.168.56.110
+
+# Teste do App 2 (Execute 3 vezes seguidas para ver as Hashes mudando)
+$ curl -H "Host: app2.com" http://192.168.56.110
+
+# Teste do App 3 (Retorna HTML Bege)
+$ curl -H "Host: app3.com" http://192.168.56.110
+
+======================================================================
