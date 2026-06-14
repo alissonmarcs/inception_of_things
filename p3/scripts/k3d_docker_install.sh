@@ -32,3 +32,7 @@ curl -LO "https://dl.k8s.io/release/v1.36.1/bin/linux/amd64/kubectl"
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 rm kubectl
 curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.8.3 bash
+
+curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/download/v3.4.3/argocd-linux-amd64
+sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+rm argocd-linux-amd64
