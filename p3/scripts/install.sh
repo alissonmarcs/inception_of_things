@@ -54,5 +54,3 @@ logger "App is ready"
 
 logger "Opening browser to argocd"
 open "https://localhost:$APP_PORT"
-
-# TODO: Validate script in macos and linux on vm.
