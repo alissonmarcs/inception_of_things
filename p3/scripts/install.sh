@@ -3,6 +3,8 @@
 export YELLOW="\001\033[1;33m\002" RESET="\001\033[0m\002"
 PORT=9000
 
+set -e
+
 logger() {
     printf "$YELLOW$1$RESET\n"
 }
@@ -22,9 +24,6 @@ kubectl create namespace dev
 logger "Installing argocd"
 kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-logger "wait argo cd to be ready on port"
-kubectl wait -n argocd --for=condition=ready pod/argocd-server
-
 logger "Port-forwarding argocd to $PORT"
 PID_ARGOCD=$(kubectl port-forward -n argocd service/argocd-server $PORT:443 & echo $!)&
 echo "Argocd port-forward PID: $PID_ARGOCD"
@@ -41,7 +40,7 @@ logger "Creating will-playground app"
 argocd app create will-playground --file confs/will42.yaml
 
 logger "Port-forwarding dev to $APP_PORT"
-PID_APP=$(kubectl port-forward -n dev service/will-playground $APP_PORT:8888 & echo $!)
+PID_APP=$(kubectl port-forward -n dev service/will-playground $APP_PORT:8888 & echo $!)&
 echo "Dev port-forward PID: $PID_APP"
 
 logger "Waiting for app to be ready"
