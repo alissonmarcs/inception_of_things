@@ -26,7 +26,7 @@ logger "wait argo cd to be ready on port"
 kubectl wait -n argocd --for=condition=ready pod/argocd-server
 
 logger "Port-forwarding argocd to $PORT"
-PID_ARGOCD=$(kubectl port-forward -n argocd service/argocd-server $PORT:443 & echo $!)
+PID_ARGOCD=$(kubectl port-forward -n argocd service/argocd-server $PORT:443 & echo $!)&
 echo "Argocd port-forward PID: $PID_ARGOCD"
 
 logger "Getting argocd secret..."
