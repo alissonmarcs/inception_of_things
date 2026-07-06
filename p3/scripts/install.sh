@@ -24,7 +24,7 @@ kubectl create namespace dev
 logger "Installing argocd"
 kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-sleep 10
+sleep 2
 
 logger "Port-forwarding argocd to $PORT"
 gnome-terminal -- bash -c "sudo kubectl port-forward -n argocd service/argocd-server $PORT:443 > /dev/null 2>&1"
