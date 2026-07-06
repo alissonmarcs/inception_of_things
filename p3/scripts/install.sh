@@ -22,9 +22,12 @@ kubectl create namespace dev
 logger "Installing argocd"
 kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
+logger "wait argo cd to be ready on port 9000"
+kubectl wait -n argocd --for=condition=ready pod/argocd-server
+
 logger "Getting argocd secret..."
 export ARGOCD_SECRET=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-echo "Argocd secret fetched and stored in ARGOCD_SECRET in your environment."
+logger "Argocd secret fetched and stored in ARGOCD_SECRET in your environment. $ARGOCD_SECRET"
 
 logger "Port-forwarding argocd to $PORT"
 PID_ARGOCD=$(kubectl port-forward -n argocd service/argocd-server $PORT:443 & echo $!)
