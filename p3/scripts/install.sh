@@ -27,8 +27,7 @@ kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubuse
 sleep(10)
 
 logger "Port-forwarding argocd to $PORT"
-PID_ARGOCD=$(kubectl port-forward -n argocd service/argocd-server $PORT:443 & echo $!)&
-echo "Argocd port-forward PID: $PID_ARGOCD"
+kubectl port-forward -n argocd service/argocd-server $PORT:443 &
 
 logger "Getting argocd secret..."
 export ARGOCD_SECRET=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
