@@ -39,14 +39,14 @@ argocd login localhost:$PORT --insecure --username admin --password $ARGOCD_SECR
 
 APP_PORT=4242
 logger "Creating will-playground app"
-argocd app create will-playground --file ../confs/will42.yaml
+kubectl apply -f ../confs/will42.yaml -n argocd
 
 logger "Port-forwarding dev to $APP_PORT"
-PID_APP=$(kubectl port-forward -n dev service/will-playground $APP_PORT:8888 & echo $!)&
+PID_APP=$(kubectl port-forward -n dev service/wil-playground $APP_PORT:8888 & echo $!)&
 echo "Dev port-forward PID: $PID_APP"
 
 logger "Waiting for app to be ready"
-argocd app wait will-playground --timeout 30s
+kubectl wait --for=condition=available deployment/wil-playground -n dev --timeout=30s
 
 logger "App is ready"
 
