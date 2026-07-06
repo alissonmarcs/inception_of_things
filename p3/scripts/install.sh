@@ -42,11 +42,13 @@ logger "Creating will-playground app"
 kubectl apply -f ../confs/will42.yaml -n argocd
 
 logger "Port-forwarding dev to $APP_PORT"
-PID_APP=$(kubectl port-forward -n dev service/will-playground $APP_PORT:8888 & echo $!)&
+kubectl port-forward service/will-playground -n dev $APP_PORT:8888 > /dev/null 2>&1 &
+
 echo "Dev port-forward PID: $PID_APP"
 
 logger "Waiting for app to be ready"
-kubectl wait --for=condition=available deployment/will-playground -n dev --timeout=30s
+kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=will-playground -n dev --timeout=300s
+kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
 
 logger "App is ready"
 
