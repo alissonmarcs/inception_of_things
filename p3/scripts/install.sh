@@ -28,14 +28,14 @@ logger "\t\t ---- Waiting for argocd to be ready ----"
 kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
 
 logger "Port-forwarding argocd to $PORT"
-kubectl port-forward service/argocd-server -n argocd 8080:443 > /dev/null 2>&1 &
+kubectl port-forward service/argocd-server -n argocd $PORT:443 > /dev/null 2>&1 &
 
 logger "Getting argocd secret..."
 export ARGOCD_SECRET=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 logger "Argocd secret fetched and stored in ARGOCD_SECRET in your environment. $ARGOCD_SECRET"
 
 logger "Logging in to argocd"
-argocd login localhost:$PORT --username admin --password $ARGOCD_SECRET
+argocd login localhost:$PORT --insecure --username admin --password $ARGOCD_SECRET
 
 APP_PORT=4242
 logger "Creating will-playground app"
