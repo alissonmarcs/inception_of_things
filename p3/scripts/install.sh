@@ -14,7 +14,7 @@ logger() {
 
 # create k3d cluster and point redirect traffic from port 8888 to internal port 80 (Traefik load balancer)
 logger "Creating k3d cluster"
-k3d cluster create vde-frei --port "8888:80@loadbalancer"
+k3d cluster create vde-frei
 
 # create argocd and dev namespace
 logger "Creating argocd and dev namespace"
@@ -23,6 +23,8 @@ kubectl create namespace dev
 
 logger "Installing argocd"
 kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+sleep(10)
 
 logger "Port-forwarding argocd to $PORT"
 PID_ARGOCD=$(kubectl port-forward -n argocd service/argocd-server $PORT:443 & echo $!)&
