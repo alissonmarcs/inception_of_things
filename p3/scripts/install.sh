@@ -30,7 +30,7 @@ logger "Port-forwarding argocd to $PORT"
 $(kubectl port-forward -n argocd service/argocd-server $PORT:443)&
 
 logger "Getting argocd secret..."
-export ARGOCD_SECRET=$(argocd admin initial-password -n argocd)
+export ARGOCD_SECRET=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 logger "Argocd secret fetched and stored in ARGOCD_SECRET in your environment. $ARGOCD_SECRET"
 
 logger "Logging in to argocd"
