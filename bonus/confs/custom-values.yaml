@@ -1,0 +1,97 @@
+# custom-values.yaml
+nginx-ingress:
+  enabled: false
+
+certmanager:
+  config:
+    apiVersion: controller.config.cert-manager.io/v1alpha1
+    kind: ControllerConfiguration
+    enableGatewayAPI: true
+
+global:
+  gatewayApi:
+    configureCertmanager: true
+    # Install a Gateway and Routes for each component.
+    enabled: true
+    # Install the bundled Envoy Gateway chart, a GatewayClass, a EnvoyPatchPolicy, and the EnvoyProxy resources.
+    installEnvoy: true
+  ingress:
+    enabled: false
+  hosts:
+    domain: example.com
+    externalIP: "10.0.2.15"
+  redis:
+    host: valkey.default.svc.cluster.local
+    auth:
+      secret: valkey-auth
+      key: default-password
+  psql:
+    host: gitlab-rails-db-rw.default.svc.cluster.local
+    password:
+      secret: gitlab-rails-db-app
+      key: password
+
+  appConfig:
+    object_store:
+      enabled: true
+      # If you aren't exposing Garage through the Ingress Gateway API, set object storage download proxying to true
+      proxy_download: true
+      connection:
+        secret: gitlab-object-storage
+        key: config
+    # Set to buckets created in Garage. Can be omitted if you used the default bucket names.
+    artifacts:
+      bucket: gitlab-artifacts
+    lfs:
+      bucket: git-lfs
+    uploads:
+      bucket: gitlab-uploads
+    packages:
+      bucket: gitlab-packages
+    externalDiffs:
+      enabled: true
+      bucket: gitlab-mr-diffs
+    terraformState:
+      enabled: true
+      bucket: gitlab-terraform-state
+    ciSecureFiles:
+      enabled: true
+      bucket: gitlab-ci-secure-files
+    agentPlanContent:
+      enabled: true
+      bucket: gitlab-agent-plan-content
+    dependencyProxy:
+      enabled: true
+      bucket: gitlab-dependency-proxy
+  # Disable bundled MinIO.
+  minio:
+    enabled: false
+gatewayApiResources:
+  gateway:
+    addresses:
+    - type: IPAddress
+      value: "10.0.2.15"
+    infrastructure:
+      annotations: {}
+# Configure backup/restore to use Garage backend.
+gitlab:
+  toolbox:
+    backups:
+      objectStorage:
+        config:
+          secret: gitlab-object-storage-s3cmd
+          key: config
+# Disable Registry redirect if not exposing Garage via Ingress/Gateway API
+registry:
+  storage:
+    secret: gitlab-registry-storage
+    key: config
+    redirect:
+      disable: true
+# Disable bundled PostgreSQL and Redis.
+postgresql:
+  install: false
+redis:
+  install: false
+certmanager-issuer:
+  email: webmaster@example.com

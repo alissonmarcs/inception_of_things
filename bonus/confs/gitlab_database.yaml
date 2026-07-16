@@ -1,0 +1,17 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: gitlabhq-production
+  namespace: pg
+spec:
+  name: gitlabhq_production
+  owner: gitlab
+  cluster:
+    name: pg-cluster
+  extensions:
+    - name: pg_trgm
+      ensure: present
+    - name: btree_gist
+      ensure: present
+    - name: plpgsql
+      ensure: present
