@@ -1,13 +1,19 @@
-#!/usr/bin/bash
-
-if command -v docker &>/dev/null && command -v k3d &>/dev/null; then
-  echo "docker and k3d are already installed. Exiting."
-  exit 0
-fi
+#!/bin/bash
 
 export YELLOW="\001\033[1;33m\002" RESET="\001\033[0m\002"
 
-printf "\t\t $YELLOW ---- Installing docker ---- $RESET\n"
+logger() {
+    printf "$YELLOW$1$RESET\n"
+}
+
+logger "\t\t ---- Checking dependencies ----"
+if command -v docker &>/dev/null && command -v k3d &>/dev/null; then
+  logger "docker and k3d are already installed. Exiting."
+  exit 0
+fi
+
+
+logger "\t\t ---- Installing docker ----"
 sudo apt update
 sudo apt install -y ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -26,16 +32,16 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin d
 sudo usermod -aG docker $USER
 
 
-printf "\t\t $YELLOW ---- Installing kubectl ---- $RESET\n"
+logger "\t\t ---- Installing kubectl ----"
 curl -LO "https://dl.k8s.io/release/v1.36.1/bin/linux/amd64/kubectl"
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 rm kubectl
 
-printf "\t\t $YELLOW ---- Installing k3d ---- $RESET\n"
+logger "\t\t ---- Installing k3d ----"
 curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=v5.8.3 bash
 
 
-printf "\t\t $YELLOW ---- Installing argocd ---- $RESET\n"
+logger "\t\t ---- Installing argocd ----"
 curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/download/v3.4.3/argocd-linux-amd64
 sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
 rm argocd-linux-amd64
