@@ -6,7 +6,7 @@ logger() {
     printf "$YELLOW$1$RESET\n"
 }
 
-logger "\t\t ---- Checking dependencies ----"
+logger "Checking dependencies"
 if command -v docker &>/dev/null && command -v k3d &>/dev/null; then
   logger "docker and k3d are already installed. Exiting."
   exit 0
@@ -45,3 +45,4 @@ logger "\t\t ---- Installing argocd ----"
 curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/download/v3.4.3/argocd-linux-amd64
 sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
 rm argocd-linux-amd64
+
