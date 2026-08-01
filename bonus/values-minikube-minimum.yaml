@@ -6,7 +6,27 @@
 # - Configured to use 192.168.99.100, and nip.io for the domain
 
 # Minimal settings
+
+nginx-ingress:
+  enabled: false
+
+certmanager:
+  config:
+    apiVersion: controller.config.cert-manager.io/v1alpha1
+    kind: ControllerConfiguration
+    enableGatewayAPI: true
+
 global:
+
+  gatewayApi:
+    configureCertmanager: true
+    # Install a Gateway and Routes for each component.
+    enabled: true
+    # Install the bundled Envoy Gateway chart, a GatewayClass, a EnvoyPatchPolicy, and the EnvoyProxy resources.
+    installEnvoy: true
+
+  ingress:
+    enabled: false
   redis:
     host: valkey.default.svc.cluster.local
     auth:
@@ -23,7 +43,6 @@ global:
   hosts:
     domain: 10.0.2.15.nip.io
     externalIP: 10.0.2.15
-    https: false
   # Disable Rails bootsnap cache (temporary)
   rails:
     bootsnap:
@@ -65,7 +84,7 @@ global:
       enabled: true
       bucket: gitlab-dependency-proxy
 # Don't use certmanager, we'll self-sign
-installCertmanager: false
+installCertmanager: true
 # Use the `ingress` addon, not our Ingress (can't map 22/80/443)
 nginx-ingress:
   enabled: false
@@ -107,3 +126,11 @@ registry:
       disable: true
 certmanager-issuer:
   email: alissonmarcos250@gmail.com
+
+gatewayApiResources:
+  gateway:
+    addresses:
+    - type: IPAddress
+      value: "10.0.2.15"
+    infrastructure:
+      annotations: {}
