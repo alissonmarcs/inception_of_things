@@ -83,3 +83,6 @@ s3:
   v4auth: true
   pathstyle: true
 EOF
+
+rm node_3_id.txt  node_2_id.txt  node_1_id.txt
+
