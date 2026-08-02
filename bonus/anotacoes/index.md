@@ -115,3 +115,4 @@ service/envoy-default-gitlab-gw-f1533772   LoadBalancer   10.43.53.194    10.0.2
 k3d cluster create -p '10.0.2.15:443:443@loadbalancer' -p '10.0.2.15:80:80@loadbalancer' -p '10.0.2.15:20:20@loadbalancer' -p '10.0.2.15:32022:32022@loadbalancer' --k3s-arg "--disable=traefik@server:0"
 
 
+helm upgrade gitlab gitlab/gitlab --set gatewayApiResources.gateway.listeners.registry-web.tls.certificateRefs[0].name=gitlab-wildcard-tls --set certmanager-issuer.email=alissonmarcos250@gmail.com --set gatewayApiResources.gateway.listeners.gitlab-web.tls.certificateRefs[0].name=gitlab-wildcard-tls -f repos/inception_of_things/bonus/values-minikube-minimum.yaml --set gatewayApiResources.gateway.listeners.kas-web.tls.certificateRefs[0].name=gitlab-wildcard-tls
