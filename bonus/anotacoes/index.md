@@ -112,5 +112,6 @@ service/envoy-default-gitlab-gw-f1533772   LoadBalancer   10.43.53.194    10.0.2
 
 ### comando k3d
 
-k3d cluster create -p '10.0.2.15:80:80@loadbalancer' -p '10.0.2.15:20:20@loadbalancer' -p '10.0.2.15:32022:32022@loadbalancer' --k3s-arg "--disable=traefik@server:0"
+k3d cluster create -p '10.0.2.15:443:443@loadbalancer' -p '10.0.2.15:80:80@loadbalancer' -p '10.0.2.15:20:20@loadbalancer' -p '10.0.2.15:32022:32022@loadbalancer' --k3s-arg "--disable=traefik@server:0"
+
 
