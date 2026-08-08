@@ -6,8 +6,9 @@
 
 Não é necessário rodar o `setup_garage.sh`, pois o `setup_gitlab.sh` já o executa.
 
-Para deletar o cluster k8s:
+Para deletar tudo e testar novamente:
 
 ```bash
 k3d cluster delete
+./setup_gitlab.sh
 ```
