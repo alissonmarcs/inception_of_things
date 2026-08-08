@@ -45,11 +45,14 @@ kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server -
 
 kubectl patch service/argocd-server -n argocd --type=json -p '[{"op": "replace", "path": "/spec/type", "value": "NodePort"}, {"op":"add", "path":"/spec/ports/1/nodePort", "value":30777}]'
 
+
+kubectl patch cm argocd-cm -n argocd --type merge -p '{"data":{"timeout.reconciliation":"30s"}}'
+kubectl patch cm argocd-cm -n argocd --type merge -p '{"data":{"timeout.reconciliation.jitter":"0"}}'
+
 export KEY=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d)
 printf "Argocd password to login in browser: $KEY\n"
 
 argocd login 10.0.2.15:30777 --username admin --password $KEY --skip-test-tls --insecure
-
 argocd cert add-tls gitlab.10.0.2.15.nip.io --from /usr/local/share/ca-certificates/gitlab_ca.crt
 
 export gitlab_password=$(kubectl get secret gitlab-gitlab-initial-root-password -o jsonpath='{.data.password}' | base64 -d )
