@@ -1,5 +1,7 @@
 ## Como rodar ?
 
+Necessário ter instalado os seguintes comandos: docker, k3d, argocd, kubect e helm
+
 ```bash
 ./setup_gitlab.sh
 ```

@@ -4,6 +4,9 @@ metadata:
   name: gitlab-rails-db
   namespace: default
 spec:
+  postgresql:
+    parameters:
+      max_locks_per_transaction: "256"
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:17
   storage:
