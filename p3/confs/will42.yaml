@@ -12,7 +12,7 @@ spec:
 
   # Source of the application manifests
   source:
-    repoURL: https://github.com/alissonmarcs/eddos-sa.git  # Can point to either a Helm chart repo or a git repo.
+    repoURL: https://github.com/alissonmarcs/vde-frei.git  # Can point to either a Helm chart repo or a git repo.
     targetRevision: HEAD  # For Helm, this refers to the chart version.
     path: manifests  # This has no meaning for Helm charts pulled directly from a Helm repo instead of git.
 
