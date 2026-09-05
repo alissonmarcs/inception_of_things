@@ -1,80 +1,39 @@
-## Sobre
+# Project explanation
 
-O propósito desse projeto é ser uma introdução as seguintes ferramentas:
+## `p1`
 
-- Vagrant, simplifica o gerenciamento de VMs de diferentes providers (VirtualBox, VMWare, etc) através do `Vagrantfile`
-- Kubernetes, gerencia um cluster de VMs
+Kubernetes (K8s) manages a cluster made up of one or more nodes. A cluster can have one node, two nodes, three nodes, or many more. A node can be a physical machine, a virtual machine, or a container.
 
-## Como rodar
+Kubernetes nodes have roles. A controller, also called a control-plane node, manages the cluster, including its API server, scheduling, and cluster state. A worker node runs application workloads inside Pods. In K3s, the controller is called a server and the worker is called an agent. K3s server nodes can also run workloads by default unless they are tainted or otherwise restricted.
 
-O projeto deve ser rodado dentro de uma VM do VirtualBox. Com ele instalado, faça download do aquivo abaixo e importe ele no VirtualBox (Menu File > Import Appliance). A VM foi configurada com 16GB Ram e 4 CPUS, mas vc pode mudar essas configs, e recomendo que o disco virtual dela tenha no mínimo uns 70GB.
+`kubectl` is the command-line client used to communicate with the Kubernetes API server. It can inspect and manage Kubernetes resources, workloads, and cluster configuration. `kubectl` does not start or stop the virtual machines; Vagrant performs those operations, while `kubectl` manages the Kubernetes cluster running inside the machines.
 
--  [Linux Mint VirtualBox image](https://drive.google.com/file/d/1Fin0aV261Yuldtv47qqZcMvpbe69S-Lh/view?usp=drive_link)
+`kubectl` reads a kubeconfig file to know which cluster to connect to, which API server endpoint to use, and how to authenticate. The kubeconfig can point to a local cluster or to a remote cluster. For example, a local machine can use a kubeconfig that points to a Kubernetes cluster hosted on AWS and manage that cluster remotely.
 
-Dicas:
+The `p1` folder contains a `Vagrantfile` that creates a two-node K3s cluster using VirtualBox:
 
-- Ctrl direito + f para habilitar/desabilitar full screen
-- copy/paste entre o a VM e o host deve funcionar normalmente
+- `almarcosS`, at `192.168.56.110`, is the K3s server and controller node.
+- `eddos-saSW`, at `192.168.56.111`, is the K3s agent and worker node.
+- Each virtual machine is configured with 2 GB of memory and 2 CPUs.
+- Swap is disabled because Kubernetes requires swap to be disabled in this setup.
+- The worker joins the server through the K3s API server at `192.168.56.110:6443`.
 
-Após importar e iniciar a VM, clone esse repo.
+K3s creates the server kubeconfig at `/etc/rancher/k3s/k3s.yaml`. To use this kubeconfig from another machine, the API server address must be reachable from that machine. In this project, that means using `192.168.56.110` instead of `127.0.0.1`.
 
-O projeto é dividido em três partes. Entre na pasta da parte desejada (ex: `cd p1`) e rode:
+## How to run
+
+From the repository root, start the 2 machines that will be two nodes of cluster, and connect to the controller node:
 
 ```bash
+cd p1
 vagrant up
+vagrant ssh almarcosS
 ```
 
-### Comandos úteis do Vagrant
-
-Sobe apenas uma VM especifica:
+Inside the controller machine, verify that both nodes joined the cluster:
 
 ```bash
-vagrant up almarcos
+kubectl get nodes -o wide
 ```
 
-Sobe todas as VMs em paralelo:
-
-```bash
-vagrant up --parallel
-```
-
-Abrir um shell na VM:
-
-```bash
-vagrant ssh eddos-sa
-```
-
-Parar todas as VMs:
-
-```bash
-vagrant halt
-```
-
-Apagar todas as VMs sem perguntar e em paralelo:
-
-```bash
-vagrant destroy -f --parallel
-```
-
-Listar todas as VMs, removendo entradas inválidas:
-
-```bash
-vagrant global-status --prune
-```
-
-Remover box:
-
-```bash
-vagrant box remove box_name
-```
-
-Listar boxes:
-
-```bash
-vagrant box list
-```
-
-
-## Links úteis
-
-- [Introdução ao Vagrant](https://developer.hashicorp.com/vagrant/tutorials/get-started)
+The expected result is that `almarcosS` and `eddos-saSW` are both listed with the `Ready` status and their configured private IP addresses.
