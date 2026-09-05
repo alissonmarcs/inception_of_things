@@ -14,7 +14,7 @@ logger() {
 
 # create k3d cluster and point redirect traffic from port 8888 to internal port 80 (Traefik load balancer)
 logger "Creating k3d cluster"
-k3d cluster create  -p "30777:30777@server:0" -p "30888:30888@server:0"
+k3d cluster create  -p "127.0.0.1:30777:30777@server:0" -p "127.0.0.1:30888:30888@server:0"
 
 # create argocd and dev namespace
 logger "Creating argocd and dev namespace"
@@ -29,8 +29,6 @@ kubectl wait --for=condition=Ready pod -l app.kubernetes.io/name=argocd-server -
 
 logger "Paching argocd-server to nodePort"
 kubectl patch service/argocd-server -n argocd --type=json -p '[{"op": "replace", "path": "/spec/type", "value": "NodePort"}, {"op":"add", "path":"/spec/ports/1/nodePort", "value":30777}]'
-
-logger "\t\t --- PID of command 'kubectl port-forward service/argocd-server': $!"
 
 logger "Getting argocd secret..."
 export ARGOCD_SECRET=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d)
