@@ -233,3 +233,87 @@ To delete the local k3d cluster:
 ```bash
 k3d cluster delete
 ```
+
+## `bonus`
+
+The `bonus` directory provisions a local GitOps environment with k3d,
+Kubernetes, GitLab, Garage object storage, CloudNativePG, and Argo CD.
+GitLab is configured as the source repository for the Argo CD application
+defined in [`bonus/confs/will42.yaml`](bonus/confs/will42.yaml).
+
+The setup creates:
+
+- A k3d cluster with HTTP, HTTPS, GitLab SSH, Argo CD, and application ports
+  exposed on `10.0.2.15`
+- Valkey for GitLab caching
+- A PostgreSQL 17 database managed by CloudNativePG
+- Garage as the S3-compatible object storage backend for GitLab
+- GitLab using the Gateway API and a self-signed certificate
+- Argo CD with automatic synchronization enabled
+
+### Dependencies
+
+- Docker
+- k3d
+- `kubectl`
+- Helm
+- Argo CD CLI
+- `sudo` access to install the GitLab CA certificate
+- Internet access to download container images, Helm charts, and Kubernetes
+  manifests
+
+Add the chart repositories before running the setup:
+
+```bash
+helm repo add valkey https://valkey.io/valkey-helm/
+helm repo add garage https://kubernetes-sigs.github.io/garage-operator
+helm repo add gitlab https://charts.gitlab.io/
+helm repo update
+```
+
+### How to run
+
+Run the setup script from its directory:
+
+```bash
+cd bonus/scripts
+chmod +x setup_gitlab.sh setup_garage.sh
+./setup_gitlab.sh
+```
+
+`setup_gitlab.sh` creates the cluster, installs the dependencies, configures
+Garage buckets and credentials, installs GitLab and Argo CD, and adds the
+GitLab CA certificate to the host trust store. It also prints the GitLab root
+password and the Argo CD administrator password.
+
+GitLab is available at:
+
+```text
+https://gitlab.10.0.2.15.nip.io
+```
+
+Log in with username `root` and the password printed by the setup script.
+Argo CD is available at `https://10.0.2.15:30777`; use username `admin` and
+the printed administrator password. The Argo CD CLI login performed by the
+script skips TLS verification because the local certificate is self-signed.
+
+After creating or importing the GitLab repository referenced by
+`will42.yaml`, apply the Argo CD application:
+
+```bash
+kubectl apply -f ../confs/will42.yaml
+kubectl get applications -n argocd
+kubectl get all -n dev
+```
+
+The application is synchronized automatically from the repository's
+`manifests` directory into the `dev` namespace. Port `30888` is exposed by
+the k3d cluster for the deployed application.
+
+From the project root, remove the environment and run the setup again:
+
+```bash
+k3d cluster delete
+cd bonus/scripts
+./setup_gitlab.sh
+```
