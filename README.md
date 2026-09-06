@@ -116,20 +116,17 @@ vagrant destroy -f
 The `p3` directory contains a local GitOps environment using Docker,
 k3d, Kubernetes, and Argo CD.
 
-The setup script:
+The setup script `p3/scripts/setup_argocd.sh`:
 
-- Installs Docker, `kubectl`, k3d, and the Argo CD CLI when needed
 - Creates a local k3d Kubernetes cluster
 - Creates the `argocd` and `dev` namespaces
-- Installs Argo CD
-- Exposes the Argo CD server at `https://localhost:30777`
-- Creates an Argo CD Application named `will-playground`
-- Automatically synchronizes the `manifests` directory from Git into the
-  `dev` namespace
+- Installs Argo CD on `argocd` namespace
+- Exposes the Argo CD server at `https://127.0.0.1:30777`
+- Creates an Argo CD Application named `will-playground` at `argocd` namespace. `will-playground` will watch `https://github.com/alissonmarcs/vde-frei/blob/main/manifests/deployment.yaml` and deploy it automatically at `dev` namespace.
 
 ### Dependencies
 
-- Docker
+- Docker, k3d, kubectl, curl
 - Linux or Ubuntu-based environment
 - Internet connection
 - `sudo` access
@@ -158,7 +155,7 @@ to open Argo CD in the browser.
 Argo CD is available at:
 
 ```text
-https://localhost:30777
+https://127.0.0.1:30777
 ```
 
 Login with:
