@@ -41,7 +41,7 @@ vagrant destroy -f
 
 ## `p2`
 
-The `p2` directory provisions one Debian 12 virtual machine running a
+The `p2` directory provisions one Debian 13.1 virtual machine running a
 single-node K3s Kubernetes cluster. K3s includes Traefik as the Ingress
 Controller.
 
