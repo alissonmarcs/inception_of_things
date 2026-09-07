@@ -275,7 +275,7 @@ GitLab is available at:
 https://gitlab.10.0.2.15.nip.io
 ```
 
-Open it in browser, and create repo ArgoCD will watch. Repo shoul be named `vde-frei` and have
+Open it in browser, and create repo ArgoCD will watch. Repo should be named `vde-frei` and have
 `manifests` folder, like ArgoCD application expects
 
 ```yml
