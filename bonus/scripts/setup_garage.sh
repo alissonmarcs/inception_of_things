@@ -4,7 +4,7 @@ export YELLOW="\001\033[1;33m\002" RESET="\001\033[0m\002"
 
 export GARAGE_NAMESPACE=default
 
-set -xe
+set -xeuo pipefail
 
 kubectl rollout status statefulsets.apps --timeout=300s
 
@@ -18,9 +18,9 @@ found && $1 != "ID" && length($1) == 16 {
 }
 '
 
-kubectl -n $GARAGE_NAMESPACE exec pod/garage-0 -- /garage layout assign -z gitlab1 -c 5G $(cat node_1_id.txt)
-kubectl -n $GARAGE_NAMESPACE exec  pod/garage-0  -- /garage layout assign -z gitlab2 -c 5G $(cat node_2_id.txt)
-kubectl -n $GARAGE_NAMESPACE exec pod/garage-0  -- /garage layout assign -z gitlab3 -c 5G $(cat node_3_id.txt)
+eval "kubectl -n $GARAGE_NAMESPACE exec pod/garage-0 -- /garage layout assign -z gitlab1 -c 5G" "$(cat node_1_id.txt)"
+eval "kubectl -n $GARAGE_NAMESPACE exec  pod/garage-0  -- /garage layout assign -z gitlab2 -c 5G" "$(cat node_2_id.txt)"
+eval "kubectl -n $GARAGE_NAMESPACE exec pod/garage-0  -- /garage layout assign -z gitlab3 -c 5G" "$(cat node_3_id.txt)"
 
 layout_version=$(
     kubectl exec pod/garage-0 -- /garage layout show |
@@ -85,4 +85,3 @@ s3:
 EOF
 
 rm node_3_id.txt  node_2_id.txt  node_1_id.txt
-

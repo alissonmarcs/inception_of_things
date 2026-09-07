@@ -1,28 +1,43 @@
-# Project explanation
+<div align="center">
+	<h1>Inception of Things</h1>
+	<img src="https://raw.githubusercontent.com/alissonmarcs/alissonmarcs/refs/heads/main/images/k8s_logo.png" alt="Kubernetes logo" width="150" height="150"/>
+	<p align="center">A 42 specialization project that introduce to Kubernetes world.</p>
+</div>
+
+<div align="center">
+	<h2>Final score</h2>
+	<img src="https://i.imgur.com/dL7Srhr.png" alt="Project scored with 125/100">
+
+---
+
+ [`Dependencies`](#dependencies) <br>
+ [`p1`](#p1) <br>
+ [`p2`](#p2) <br>
+ [`p3`](#p3) <br>
+ [`bonus`](#bonus)
+</div>
+
+## Dependencies
+
+Virtualbox, vagrant, kubectl, helm, argocd cli, docker, k3d, curl.
+
+Also, the following helm repos, plugin and operator are need
+
+```bash
+helm repo add valkey https://valkey.io/valkey-helm/
+helm plugin install https://github.com/aslafy-z/helm-git
+helm repo add garage "git+https://git.deuxfleurs.fr/Deuxfleurs/garage.git@script/helm?ref=v2.2.0"
+kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.28/releases/cnpg-1.28.0.yaml
+```
+
 
 ## `p1`
 
-Kubernetes (K8s) manages a cluster made up of one or more nodes. A cluster can have one node, two nodes, three nodes, or many more. A node can be a physical machine, a virtual machine, or a container.
+Two node k3s cluster. Nodes are Debian 13.1 virtual machines created and configured with vagrant. This setup has no workload.
 
-Kubernetes nodes have roles. A controller, also called a control-plane node, manages the cluster, including its API server, scheduling, and cluster state. A worker node runs application workloads inside Pods. In K3s, the controller is called a server and the worker is called an agent. K3s server nodes can also run workloads by default unless they are tainted or otherwise restricted.
+### How to run
 
-`kubectl` is the command-line client used to communicate with the Kubernetes API server. It can inspect and manage Kubernetes resources, workloads, and cluster configuration. `kubectl` does not start or stop the virtual machines; Vagrant performs those operations, while `kubectl` manages the Kubernetes cluster running inside the machines.
-
-`kubectl` reads a kubeconfig file to know which cluster to connect to, which API server endpoint to use, and how to authenticate. The kubeconfig can point to a local cluster or to a remote cluster. For example, a local machine can use a kubeconfig that points to a Kubernetes cluster hosted on AWS and manage that cluster remotely.
-
-The `p1` folder contains a `Vagrantfile` that creates a two-node K3s cluster using VirtualBox:
-
-- `almarcosS`, at `192.168.56.110`, is the K3s server and controller node.
-- `eddos-saSW`, at `192.168.56.111`, is the K3s agent and worker node.
-- Each virtual machine is configured with 2 GB of memory and 2 CPUs.
-- Swap is disabled because Kubernetes requires swap to be disabled in this setup.
-- The worker joins the server through the K3s API server at `192.168.56.110:6443`.
-
-K3s creates the server kubeconfig at `/etc/rancher/k3s/k3s.yaml`. To use this kubeconfig from another machine, the API server address must be reachable from that machine. In this project, that means using `192.168.56.110` instead of `127.0.0.1`.
-
-## How to run
-
-From the repository root, start the 2 machines that will be two nodes of cluster, and connect to the controller node:
+From the project root, run:
 
 ```bash
 cd p1
@@ -30,10 +45,189 @@ vagrant up
 vagrant ssh almarcosS
 ```
 
-Inside the controller machine, verify that both nodes joined the cluster:
+The control plane is available at `192.168.56.110` and the worker node at
+`192.168.56.111`.
+
+To list cluster nodes
 
 ```bash
+vagrant ssh almarcosS
 kubectl get nodes -o wide
 ```
 
-The expected result is that `almarcosS` and `eddos-saSW` are both listed with the `Ready` status and their configured private IP addresses.
+To stop and remove the virtual machines:
+
+```bash
+vagrant halt
+vagrant destroy -f
+```
+
+## `p2`
+
+Single node k3s cluster with three deployments, one of them with 3 replicas, and ingress with Host based rules.
+
+The project deploys three applications:
+
+- `app1.com`: one `http-echo` replica
+- `app2.com`: three `nginxdemos/hello` replicas
+- `app3.com`: one `http-echo` replica
+
+All applications use ClusterIP Services and are routed by the Ingress
+according to the HTTP `Host` header.
+
+### How to run
+
+Add the following entry to the host machine's `/etc/hosts` file:
+
+```text
+192.168.56.110 app1.com app2.com app3.com
+```
+
+Start the VM:
+
+```bash
+cd p2
+vagrant up
+```
+
+Connect to the VM:
+
+```bash
+vagrant ssh vde-freiS
+```
+
+Apply the Kubernetes manifests:
+
+```bash
+kubectl apply -f /vagrant/confs/
+```
+
+Check the Pods:
+
+```bash
+kubectl get pods
+```
+
+Test the applications from the host machine:
+
+```bash
+curl http://app1.com
+curl http://app2.com
+curl http://app3.com
+```
+
+The VM is available at `192.168.56.110`.
+
+To stop or remove the VM:
+
+```bash
+vagrant halt
+vagrant destroy -f
+```
+
+## `p3`
+
+Single node k3d cluster, with `argocd` and `dev` namespaces. ArgoCD [CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and application `will-playground` (`p3/confs/will42.yaml`) are installed at `argocd` and will monitor [deployment.yaml](https://github.com/alissonmarcs/vde-frei/blob/main/manifests/deployment.yaml) for new commits, automatically deploying new infras on `dev`.
+
+
+### Example of automatic workload update
+
+```bash
+curl -w '\n' http://0.0.0.0:30888
+{"status":"ok", "message": "v2"}
+```
+
+After chaning [deployment.yaml](https://github.com/alissonmarcs/vde-frei/blob/main/manifests/deployment.yaml) to use `image: wil42/playground:v1`
+
+
+```bash
+curl -w '\n' http://0.0.0.0:30888
+{"status":"ok", "message": "v1"}
+```
+
+### How to run
+
+From the project root:
+
+```bash
+cd p3/scripts
+chmod +x install_dependencies.sh setup_argocd.sh
+./setup_argocd.sh
+```
+
+ArgoCD web interface are available at:
+
+```text
+https://127.0.0.1:30777
+```
+
+Login with:
+
+```text
+Username: admin
+Password: value printed by setup_argocd.sh
+```
+
+To inspect the cluster and deployed application:
+
+```bash
+kubectl get nodes
+kubectl get all -n argocd
+kubectl get all -n dev
+```
+
+To test workload, see [Example automatic worload update](#example-of-automatic-workload-update)
+
+
+To delete the local k3d cluster:
+
+```bash
+k3d cluster delete
+```
+
+## `bonus`
+
+Single node k3d cluster, Gitlab's helm chart installed and configured, ArgoCD will not more watch remote Github repo, but the one we created in local Gitlab.
+
+- Config Gitlab's helm chart and its dependencies.
+  - Postgres 17 with [CloudNativePG](https://cloudnative-pg.io/) [operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
+  - Valkey chart
+  - Garage object store chart
+- ArgoCD application to monitor repo on local Gitlab.
+
+### How to run
+
+Run the setup script from its directory:
+
+```bash
+cd bonus/scripts
+chmod +x setup_gitlab.sh setup_garage.sh
+./setup_gitlab.sh
+```
+
+`setup_gitlab.sh` creates k3d cluster, installs Gitlab and its dependencies, install ArgoCD, create `will-playground` ArgoCD's application, adds the GitLab CA certificate to the host trust store, make argocd trust Gitlab certificate. It also prints the GitLab and ArgoCD credentials to loging in web interfaces.
+
+GitLab is available at:
+
+```text
+https://gitlab.10.0.2.15.nip.io
+```
+
+Open it in browser, and create repo ArgoCD will watch. Repo should be named `vde-frei` and have
+`manifests` folder, like ArgoCD application expects
+
+```yml
+# bonus/confs/will42.yaml
+source:
+  repoURL: https://gitlab.10.0.2.15.nip.io/root/vde-frei.git 
+    targetRevision: HEAD  
+    path: manifests 
+```
+
+To test workload, see [Example automatic worload update](#example-of-automatic-workload-update)
+
+To delete entire project, delete de cluster
+
+```bash
+k3d cluster delete
+```
