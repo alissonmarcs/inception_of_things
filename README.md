@@ -1,22 +1,38 @@
-# Index
+<div align="center">
+	<h1>Inception of Things</h1>
+	<img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/960px-Kubernetes_logo_without_workmark.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail" alt="Pipex project badge of 42" width="150" height="150"/>
+	<p align="center">A 42 specialization project that introduce to Kubernetes world.</p>
+</div>
 
-- [`p1`](#p1)
-- [`p2`](#p2)
-- [`p3`](#p3)
-- [`bonus`](#bonus)
+<div align="center">
+	<h2>Final score</h2>
+	<img src="https://i.imgur.com/dL7Srhr.png" alt="Project scored with 125/100">
+
+---
+
+ [`p1`](#p1) <br>
+ [`p2`](#p2) <br>
+ [`p3`](#p3) <br>
+ [`bonus`](#bonus)
+</div>
+
+## Dependencies
+
+Virtualbox, vagrant, kubectl, helm, argocd cli, docker, k3d, curl.
+
+Also, the following helm repos, plugin and operator are need
+
+```bash
+helm repo add valkey https://valkey.io/valkey-helm/
+helm plugin install https://github.com/aslafy-z/helm-git
+helm repo add garage "git+https://git.deuxfleurs.fr/Deuxfleurs/garage.git@script/helm?ref=v2.2.0"
+kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.28/releases/cnpg-1.28.0.yaml
+```
+
 
 ## `p1`
 
-The `p1` directory contains a Vagrant configuration that creates two
-VirtualBox virtual machines for a K3s Kubernetes cluster. One machine is
-the control plane and the other is a worker node. This setup does not
-contain any workload.
-
-### Dependencies
-
-- VirtualBox
-- Vagrant
-- An internet connection to download the Debian box and install K3s
+Two node k3s cluster. Nodes are Debian 13.1 virtual machines created and configured with vagrant. This setup has no workload.
 
 ### How to run
 
@@ -30,7 +46,7 @@ vagrant up
 The control plane is available at `192.168.56.110` and the worker node at
 `192.168.56.111`.
 
-To verify the cluster:
+To list cluster nodes
 
 ```bash
 vagrant ssh almarcosS
@@ -46,9 +62,7 @@ vagrant destroy -f
 
 ## `p2`
 
-The `p2` directory provisions one Debian 13.1 virtual machine running a
-single-node K3s Kubernetes cluster. K3s includes Traefik as the Ingress
-Controller.
+Single node k3s cluster with three deployments, one of them with 3 replicas, and ingress with Host based rules.
 
 The project deploys three applications:
 
@@ -58,13 +72,6 @@ The project deploys three applications:
 
 All applications use ClusterIP Services and are routed by the Ingress
 according to the HTTP `Host` header.
-
-### Dependencies
-
-- VirtualBox
-- Vagrant
-- An internet connection
-- Permission to edit `/etc/hosts`
 
 ### How to run
 
@@ -118,31 +125,23 @@ vagrant destroy -f
 
 ## `p3`
 
-The `p3` directory contains a local GitOps environment using Docker,
-k3d, Kubernetes, and Argo CD.
+Single node k3d cluster, with `argocd` and `dev` namespaces. ArgoCD [CRD](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) and application `will-playground` (`p3/confs/will42.yaml`) are installed at `argocd` and will monitor [deployment.yaml](https://github.com/alissonmarcs/vde-frei/blob/main/manifests/deployment.yaml) for new commits, automatically deploying new infras on `dev`.
 
-The setup script `p3/scripts/setup_argocd.sh`:
 
-- Creates a local k3d Kubernetes cluster
-- Creates the `argocd` and `dev` namespaces
-- Installs Argo CD on `argocd` namespace
-- Exposes the Argo CD server at `https://127.0.0.1:30777`
-- Creates an Argo CD Application named `will-playground` at `argocd` namespace. `will-playground` will watch `https://github.com/alissonmarcs/vde-frei/blob/main/manifests/deployment.yaml` and deploy it automatically at `dev` namespace.
+### Example of automatic workload update
 
-### Dependencies
+```bash
+curl -w '\n' http://0.0.0.0:30888
+{"status":"ok", "message": "v2"}
+```
 
-- Docker, k3d, kubectl, curl
-- Linux or Ubuntu-based environment
-- Internet connection
-- `sudo` access
-- A browser for accessing Argo CD
+After chaning [deployment.yaml](https://github.com/alissonmarcs/vde-frei/blob/main/manifests/deployment.yaml) to use `image: wil42/playground:v1`
 
-The `install_dependencies.sh` script installs the following tools:
 
-- Docker
-- `kubectl`
-- k3d
-- Argo CD CLI
+```bash
+curl -w '\n' http://0.0.0.0:30888
+{"status":"ok", "message": "v1"}
+```
 
 ### How to run
 
@@ -154,10 +153,7 @@ chmod +x install_dependencies.sh setup_argocd.sh
 ./setup_argocd.sh
 ```
 
-The script prints the initial Argo CD administrator password and attempts
-to open Argo CD in the browser.
-
-Argo CD is available at:
+ArgoCD web interface are available at:
 
 ```text
 https://127.0.0.1:30777
@@ -174,61 +170,12 @@ To inspect the cluster and deployed application:
 
 ```bash
 kubectl get nodes
-kubectl get applications -n argocd
+kubectl get all -n argocd
 kubectl get all -n dev
 ```
 
-### Test the application
+To test workload, see [Example automatic worload update](#example-of-automatic-workload-update)
 
-The application is deployed to the `dev` namespace and exposed on port
-`30888`.
-
-Initially, the application uses `wil42/playground:v2`:
-
-```bash
-curl 127.0.0.1:30888
-```
-
-Expected response:
-
-```json
-{"status":"ok", "message": "v2"}
-```
-
-Change the image in [`deployment.yaml`](https://github.com/alissonmarcs/vde-frei/blob/main/manifests/deployment.yaml)
-from:
-
-```yaml
-image: wil42/playground:v2
-```
-
-to:
-
-```yaml
-image: wil42/playground:v1
-```
-
-Commit and push the change. Argo CD automatically detects the Git
-repository change and synchronizes the application in the `dev`
-namespace.
-
-Verify the updated deployment:
-
-```bash
-kubectl get pods -n dev
-```
-
-Test the application again:
-
-```bash
-curl 127.0.0.1:30888
-```
-
-Expected response:
-
-```json
-{"status":"ok", "message": "v1"}
-```
 
 To delete the local k3d cluster:
 
@@ -238,29 +185,13 @@ k3d cluster delete
 
 ## `bonus`
 
-Run Gitlab in local k3d cluster, and config ArgoCD to monitor one repo on it.
+Single node k3d cluster, Gitlab's helm chart installed and configured, ArgoCD will not more watch remote Github repo, but the one we created in local Gitlab.
 
-- local k3d cluster
 - Config Gitlab's helm chart and its dependencies.
   - Postgres 17 with [CloudNativePG](https://cloudnative-pg.io/) [operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
   - Valkey chart
   - Garage object store chart
 - ArgoCD application to monitor repo on local Gitlab.
-
-### Dependencies
-
-- Docker, k3d, kubectl, helm, argocd cli, sudo access
-- Internet access to download container images, Helm charts, and Kubernetes
-  manifests
-
-Add the chart repositories before running the setup:
-
-```bash
-helm repo add valkey https://valkey.io/valkey-helm/
-helm repo add garage https://kubernetes-sigs.github.io/garage-operator
-helm repo add gitlab https://charts.gitlab.io/
-helm repo update
-```
 
 ### How to run
 
@@ -272,7 +203,7 @@ chmod +x setup_gitlab.sh setup_garage.sh
 ./setup_gitlab.sh
 ```
 
-`setup_gitlab.sh` creates k3d cluster, installs Gitlab and its dependencies, install Argo CD, adds the GitLab CA certificate to the host trust store, make argocd trust Gitlab certificate. It also prints the GitLab root password and the Argo CD administrator password.
+`setup_gitlab.sh` creates k3d cluster, installs Gitlab and its dependencies, install ArgoCD, create `will-playground` ArgoCD's application, adds the GitLab CA certificate to the host trust store, make argocd trust Gitlab certificate. It also prints the GitLab and ArgoCD credentials to loging in web interfaces.
 
 GitLab is available at:
 
@@ -291,15 +222,7 @@ source:
     path: manifests 
 ```
 
-Create ArgoCD application
-
-```bash
-kubectl apply -f will42.yaml
-```
-
-The application is synchronized automatically from the repository's
-`manifests` directory into the `dev` namespace. Port `30888` is exposed by
-the k3d cluster for the deployed application.
+To test workload, see [Example automatic worload update](#example-of-automatic-workload-update)
 
 To delete entire project, delete de cluster
 
