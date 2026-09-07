@@ -267,7 +267,7 @@ chmod +x setup_gitlab.sh setup_garage.sh
 ./setup_gitlab.sh
 ```
 
-`setup_gitlab.sh` creates k3d cluster, installs Gitlab and its dependencies, install Argo CD application `will-playground`, adds the GitLab CA certificate to the host trust store, make argocd trust Gitlab certificate. It also prints the GitLab root password and the Argo CD administrator password.
+`setup_gitlab.sh` creates k3d cluster, installs Gitlab and its dependencies, install Argo CD, adds the GitLab CA certificate to the host trust store, make argocd trust Gitlab certificate. It also prints the GitLab root password and the Argo CD administrator password.
 
 GitLab is available at:
 
@@ -285,11 +285,17 @@ source:
     path: manifests 
 ```
 
+Create ArgoCD application
+
+```bash
+kubectl apply -f will42.yaml
+```
+
 The application is synchronized automatically from the repository's
 `manifests` directory into the `dev` namespace. Port `30888` is exposed by
 the k3d cluster for the deployed application.
 
-From the project root, remove the environment and run the setup again:
+To delete entire project, from the project root, delete de cluster
 
 ```bash
 k3d cluster delete
