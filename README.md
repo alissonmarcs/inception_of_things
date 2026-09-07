@@ -295,7 +295,7 @@ The application is synchronized automatically from the repository's
 `manifests` directory into the `dev` namespace. Port `30888` is exposed by
 the k3d cluster for the deployed application.
 
-To delete entire project, from the project root, delete de cluster
+To delete entire project, delete de cluster
 
 ```bash
 k3d cluster delete
