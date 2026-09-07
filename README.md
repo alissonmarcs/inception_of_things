@@ -1,6 +1,6 @@
 <div align="center">
 	<h1>Inception of Things</h1>
-	<img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/3/39/Kubernetes_logo_without_workmark.svg/960px-Kubernetes_logo_without_workmark.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail" alt="Pipex project badge of 42" width="150" height="150"/>
+	<img src="https://raw.githubusercontent.com/alissonmarcs/alissonmarcs/refs/heads/main/images/k8s_logo.png" alt="Kubernetes logo" width="150" height="150"/>
 	<p align="center">A 42 specialization project that introduce to Kubernetes world.</p>
 </div>
 
