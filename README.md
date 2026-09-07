@@ -240,7 +240,7 @@ Run Gitlab in local k3d cluster, and config ArgoCD to monitor one repo on it.
   - Postgres 17 with [CloudNativePG](https://cloudnative-pg.io/) [operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
   - Valkey chart
   - Garage object store chart
-- ArgoCD application to monior repo on local Gitlab.
+- ArgoCD application to monitor repo on local Gitlab.
 
 ### Dependencies
 
