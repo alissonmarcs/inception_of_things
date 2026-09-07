@@ -27,7 +27,6 @@ Also, the following helm repos, plugin and operator are need
 helm repo add valkey https://valkey.io/valkey-helm/
 helm plugin install https://github.com/aslafy-z/helm-git
 helm repo add garage "git+https://git.deuxfleurs.fr/Deuxfleurs/garage.git@script/helm?ref=v2.2.0"
-kubectl apply --server-side -f https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.28/releases/cnpg-1.28.0.yaml
 ```
 
 
