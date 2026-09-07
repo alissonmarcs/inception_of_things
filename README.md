@@ -21,7 +21,7 @@
 
 Virtualbox, vagrant, kubectl, helm, argocd cli, docker, k3d, curl.
 
-Also, the following helm repos, plugin and operator are need
+Also, the following helm repos and plugin are need
 
 ```bash
 helm repo add valkey https://valkey.io/valkey-helm/
