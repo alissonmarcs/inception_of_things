@@ -67,6 +67,8 @@ done
 
 argocd cert add-tls gitlab.10.0.2.15.nip.io --from /usr/local/share/ca-certificates/gitlab_ca.crt
 
+kubectl apply -f ../confs/will42.yaml
+
 export gitlab_password=$(kubectl get secret gitlab-gitlab-initial-root-password -o jsonpath='{.data.password}' | base64 -d )
 printf "Gitlab were installed !\n"
 printf "Open Gitlab at https://gitlab.10.0.2.15.nip.io\n"
