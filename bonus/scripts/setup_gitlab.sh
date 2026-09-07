@@ -2,7 +2,7 @@
 
 #set -ex
 
-k3d cluster create -p '10.0.2.15:30777:30777@server:0' -p '10.0.2.15:30888:30888@server:0' -p '10.0.2.15:443:443@loadbalancer' -p '10.0.2.15:80:80@loadbalancer' -p '10.0.2.15:20:20@loadbalancer' -p '10.0.2.15:32022:32022@loadbalancer' --k3s-arg "--disable=traefik@server:0"
+k3d cluster create -p '10.0.2.15:30777:30777@server:0' -p '10.0.2.15:30888:30888@server:0' -p '10.0.2.15:443:443@loadbalancer' --k3s-arg "--disable=traefik@server:0"
 
 
 helm install valkey valkey/valkey \
@@ -20,7 +20,7 @@ kubectl rollout status deployment/cnpg-controller-manager \
   -n cnpg-system \
   --timeout=2m
 
-kubectl apply -f cnpg-postgres-cluster.yaml
+kubectl apply -f ../confs/cnpg-postgres-cluster.yaml
 kubectl wait cluster/gitlab-rails-db --for=condition=Ready --timeout=3m
 
 helm install garage garage/garage \
@@ -30,7 +30,7 @@ helm install garage garage/garage \
 
 bash ./setup_garage.sh
 
-helm install gitlab gitlab/gitlab --set gatewayApiResources.gateway.listeners.registry-web.tls.certificateRefs[0].name=gitlab-wildcard-tls --set certmanager-issuer.email=alissonmarcos250@gmail.com --set gatewayApiResources.gateway.listeners.gitlab-web.tls.certificateRefs[0].name=gitlab-wildcard-tls -f values-gitlab-chart.yaml --set gatewayApiResources.gateway.listeners.kas-web.tls.certificateRefs[0].name=gitlab-wildcard-tls --wait --timeout 15m
+helm install gitlab gitlab/gitlab --set gatewayApiResources.gateway.listeners.registry-web.tls.certificateRefs[0].name=gitlab-wildcard-tls --set certmanager-issuer.email=alissonmarcos250@gmail.com --set gatewayApiResources.gateway.listeners.gitlab-web.tls.certificateRefs[0].name=gitlab-wildcard-tls -f ../confs/values-gitlab-chart.yaml --set gatewayApiResources.gateway.listeners.kas-web.tls.certificateRefs[0].name=gitlab-wildcard-tls --wait --timeout 15m
 
 kubectl get secret gitlab-wildcard-tls-ca -o jsonpath='{.data.cfssl_ca}' | base64 -d > gitlab_ca.crt
 sudo cp gitlab_ca.crt /usr/local/share/ca-certificates/
@@ -69,5 +69,6 @@ argocd cert add-tls gitlab.10.0.2.15.nip.io --from /usr/local/share/ca-certifica
 
 export gitlab_password=$(kubectl get secret gitlab-gitlab-initial-root-password -o jsonpath='{.data.password}' | base64 -d )
 printf "Gitlab were installed !\n"
-printf "Open your browser at https://gitlab.10.0.2.15.nip.io\n"
+printf "Open Gitlab at https://gitlab.10.0.2.15.nip.io\n"
+printf "Open ArgoCD at https://10.0.2.15:30777\n"
 printf "Login with username root and password $gitlab_password\n"

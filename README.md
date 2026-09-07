@@ -233,29 +233,18 @@ k3d cluster delete
 
 ## `bonus`
 
-The `bonus` directory provisions a local GitOps environment with k3d,
-Kubernetes, GitLab, Garage object storage, CloudNativePG, and Argo CD.
-GitLab is configured as the source repository for the Argo CD application
-defined in [`bonus/confs/will42.yaml`](bonus/confs/will42.yaml).
+Run Gitlab in local k3d cluster, and config ArgoCD to monitor one repo on it.
 
-The setup creates:
-
-- A k3d cluster with HTTP, HTTPS, GitLab SSH, Argo CD, and application ports
-  exposed on `10.0.2.15`
-- Valkey for GitLab caching
-- A PostgreSQL 17 database managed by CloudNativePG
-- Garage as the S3-compatible object storage backend for GitLab
-- GitLab using the Gateway API and a self-signed certificate
-- Argo CD with automatic synchronization enabled
+- local k3d cluster
+- Config Gitlab's helm chart and its dependencies.
+  - Postgres 17 with [CloudNativePG](https://cloudnative-pg.io/) [operator](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/)
+  - Valkey chart
+  - Garage object store chart
+- ArgoCD application to monior repo on local Gitlab.
 
 ### Dependencies
 
-- Docker
-- k3d
-- `kubectl`
-- Helm
-- Argo CD CLI
-- `sudo` access to install the GitLab CA certificate
+- Docker, k3d, kubectl, helm, argocd cli, sudo access
 - Internet access to download container images, Helm charts, and Kubernetes
   manifests
 
@@ -278,10 +267,7 @@ chmod +x setup_gitlab.sh setup_garage.sh
 ./setup_gitlab.sh
 ```
 
-`setup_gitlab.sh` creates the cluster, installs the dependencies, configures
-Garage buckets and credentials, installs GitLab and Argo CD, and adds the
-GitLab CA certificate to the host trust store. It also prints the GitLab root
-password and the Argo CD administrator password.
+`setup_gitlab.sh` creates k3d cluster, installs Gitlab and its dependencies, install Argo CD application `will-playground`, adds the GitLab CA certificate to the host trust store, make argocd trust Gitlab certificate. It also prints the GitLab root password and the Argo CD administrator password.
 
 GitLab is available at:
 
@@ -289,18 +275,14 @@ GitLab is available at:
 https://gitlab.10.0.2.15.nip.io
 ```
 
-Log in with username `root` and the password printed by the setup script.
-Argo CD is available at `https://10.0.2.15:30777`; use username `admin` and
-the printed administrator password. The Argo CD CLI login performed by the
-script skips TLS verification because the local certificate is self-signed.
+Open it in browser, and create repo ArgoCD will watch
 
-After creating or importing the GitLab repository referenced by
-`will42.yaml`, apply the Argo CD application:
-
-```bash
-kubectl apply -f ../confs/will42.yaml
-kubectl get applications -n argocd
-kubectl get all -n dev
+```yml
+# bonus/confs/will42.yaml
+source:
+  repoURL: https://gitlab.10.0.2.15.nip.io/root/vde-frei.git 
+    targetRevision: HEAD  
+    path: manifests 
 ```
 
 The application is synchronized automatically from the repository's
@@ -311,6 +293,4 @@ From the project root, remove the environment and run the setup again:
 
 ```bash
 k3d cluster delete
-cd bonus/scripts
-./setup_gitlab.sh
 ```
