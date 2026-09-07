@@ -225,7 +225,7 @@ source:
 
 To test workload, see [Example automatic worload update](#example-of-automatic-workload-update)
 
-To delete entire project, delete de cluster
+To delete entire project, delete the cluster
 
 ```bash
 k3d cluster delete
